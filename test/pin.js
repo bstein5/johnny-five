@@ -1,7 +1,8 @@
-var five = require("../lib/johnny-five.js"),
-  MockFirmata = require("./util/mock-firmata"),
+var mocks = require("mock-firmata"),
+  MockFirmata = mocks.Firmata,
   sinon = require("sinon"),
   events = require("events"),
+  five = require("../lib/johnny-five.js"),
   Board = five.Board,
   Pin = five.Pin;
 
@@ -163,10 +164,11 @@ exports["Pin"] = {
   },
 
   high: function(test) {
-    test.expect(2);
+    test.expect(3);
 
     this.digital.high();
     test.ok(this.digitalWrite.calledWith(11, 1));
+    test.equal(this.digital.isHigh, true);
 
     this.analog.high();
     test.ok(this.analogWrite.calledWith(1, 255));
@@ -175,10 +177,11 @@ exports["Pin"] = {
   },
 
   low: function(test) {
-    test.expect(2);
+    test.expect(3);
 
     this.digital.low();
     test.ok(this.digitalWrite.calledWith(11, 0));
+    test.equal(this.digital.isLow, true);
 
     this.analog.low();
     test.ok(this.analogWrite.calledWith(1, 0));

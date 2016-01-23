@@ -1,4 +1,5 @@
-var MockFirmata = require("./util/mock-firmata"),
+var mocks = require("mock-firmata"),
+  MockFirmata = mocks.Firmata,
   five = require("../lib/johnny-five.js"),
   sinon = require("sinon"),
   Board = five.Board,
@@ -88,7 +89,7 @@ exports["IMU -- MPU6050"] = {
   components: function(test) {
     test.expect(1);
 
-    test.deepEqual(this.imu.components, ["accelerometer", "temperature", "gyro"]);
+    test.deepEqual(this.imu.components, ["accelerometer", "thermometer", "gyro"]);
 
     test.done();
   },
@@ -215,7 +216,123 @@ exports["Multi -- MPL115A2"] = {
   components: function(test) {
     test.expect(1);
 
-    test.deepEqual(this.imu.components, ["barometer", "temperature"]);
+    test.deepEqual(this.imu.components, ["barometer", "thermometer"]);
+
+    test.done();
+  },
+};
+
+exports["Multi -- HTU21D"] = {
+
+  setUp: function(done) {
+    this.board = newBoard();
+    this.clock = sinon.useFakeTimers();
+    this.i2cConfig = sinon.spy(MockFirmata.prototype, "i2cConfig");
+    this.i2cWrite = sinon.spy(MockFirmata.prototype, "i2cWrite");
+    this.i2cRead = sinon.spy(MockFirmata.prototype, "i2cRead");
+    this.imu = new IMU({
+      controller: "HTU21D",
+      freq: 100,
+      board: this.board
+    });
+
+    this.proto = [];
+
+    this.instance = [{
+      name: "components"
+    }, {
+      name: "hygrometer"
+    }, {
+      name: "temperature"
+    }];
+
+    done();
+  },
+
+  tearDown: function(done) {
+    Board.purge();
+    restore(this);
+    IMU.Drivers.clear();
+    done();
+  },
+
+  shape: function(test) {
+    test.expect(this.proto.length + this.instance.length);
+
+    this.proto.forEach(function(method) {
+      test.equal(typeof this.imu[method.name], "function");
+    }, this);
+
+    this.instance.forEach(function(property) {
+      test.notEqual(typeof this.imu[property.name], "undefined");
+    }, this);
+
+    test.done();
+  },
+
+  components: function(test) {
+    test.expect(1);
+
+    test.deepEqual(this.imu.components, ["hygrometer", "thermometer"]);
+
+    test.done();
+  },
+};
+
+exports["Multi -- MPL3115A2"] = {
+
+  setUp: function(done) {
+    this.board = newBoard();
+    this.clock = sinon.useFakeTimers();
+    this.i2cConfig = sinon.spy(MockFirmata.prototype, "i2cConfig");
+    this.i2cWrite = sinon.spy(MockFirmata.prototype, "i2cWrite");
+    this.i2cRead = sinon.spy(MockFirmata.prototype, "i2cRead");
+    this.imu = new IMU({
+      controller: "MPL3115A2",
+      freq: 100,
+      board: this.board
+    });
+
+    this.proto = [];
+
+    this.instance = [{
+      name: "components"
+    }, {
+      name: "barometer"
+    }, {
+      name: "altimeter"
+    }, {
+      name: "temperature"
+    }];
+
+    done();
+  },
+
+  tearDown: function(done) {
+    Board.purge();
+    restore(this);
+    IMU.Drivers.clear();
+    done();
+  },
+
+  shape: function(test) {
+    test.expect(this.proto.length + this.instance.length);
+
+    this.proto.forEach(function(method) {
+      test.equal(typeof this.imu[method.name], "function");
+    }, this);
+
+    this.instance.forEach(function(property) {
+      test.notEqual(typeof this.imu[property.name], "undefined");
+    }, this);
+
+    test.done();
+  },
+
+  components: function(test) {
+    test.expect(1);
+
+    test.deepEqual(this.imu.components, ["barometer", "altimeter", "thermometer"]);
 
     test.done();
   },

@@ -1,6 +1,7 @@
 var sinon = require("sinon");
 var Emitter = require("events").EventEmitter;
-var MockFirmata = require("./util/mock-firmata");
+var mocks = require("mock-firmata"),
+  MockFirmata = mocks.Firmata;
 var EVS = require("../lib/evshield");
 var five = require("../lib/johnny-five");
 var Board = five.Board;
@@ -53,6 +54,48 @@ exports["Light"] = {
     this.clock = sinon.useFakeTimers();
     this.analogRead = sinon.spy(MockFirmata.prototype, "analogRead");
     this.light = new Light({
+      pin: "A1",
+      freq: 100,
+      board: this.board
+    });
+
+    done();
+  },
+
+  tearDown: function(done) {
+    Board.purge();
+    restore(this);
+    done();
+  },
+
+  shape: function(test) {
+    test.expect(proto.length + instance.length);
+
+    proto.forEach(function(method) {
+      test.equal(typeof this.light[method.name], "function");
+    }, this);
+
+    instance.forEach(function(property) {
+      test.notEqual(typeof this.light[property.name], 0);
+    }, this);
+
+    test.done();
+  },
+
+  emitter: function(test) {
+    test.expect(1);
+    test.ok(this.light instanceof Emitter);
+    test.done();
+  }
+};
+
+exports["Light: ALSPT19"] = {
+  setUp: function(done) {
+    this.board = newBoard();
+    this.clock = sinon.useFakeTimers();
+    this.analogRead = sinon.spy(MockFirmata.prototype, "analogRead");
+    this.light = new Light({
+      controller: "ALSPT19",
       pin: "A1",
       freq: 100,
       board: this.board
